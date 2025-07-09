@@ -1,37 +1,52 @@
-.idea/
+# ─── Build output ─────────────────────────────────────────────────────
+/target/
+/**/target/
+/build/
+/**/build/
 
-HELP.md
-target/
+# ─── Maven Wrapper (keep these!) ────────────────────────────────────
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+!.mvn/wrapper/maven-wrapper.properties
+/mvnw
+/mvnw.cmd
 
-### STS ###
-.apt_generated
+# ─── IDEs / Editors ─────────────────────────────────────────────────
+# Eclipse / STS
 .classpath
-.factorypath
 .project
-.settings
+.settings/
+.apt_generated
+.factorypath
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+# IntelliJ IDEA
+/.idea/
+/*.iws
+/*.iml
+/*.ipr
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# VS Code
+/.vscode/
+
+# ─── OS files ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs / Temp ────────────────────────────────────────────────────
+*.log
+*.tmp
+logs/
+
+# ─── Env & secrets ──────────────────────────────────────────────────
+*.env
+application-*.yml
 
 .fake
