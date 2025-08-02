@@ -28,23 +28,33 @@ public class TransactionRecord {
     @Column(nullable = false)
     private Instant timestamp;
 
+    @Column(nullable = false)
+    private float incentive;
+
     protected TransactionRecord() {
-        // JPA
+        // JPA only
     }
 
     /**
      * Create a TransactionRecord with the given details.
-     * @param sender the user sending funds
+     *
+     * @param sender    the user sending funds
      * @param recipient the user receiving funds
-     * @param amount the transaction amount
+     * @param amount    the transaction amount
      * @param timestamp the time the transaction was processed
      */
-    public TransactionRecord(UserRecord sender, UserRecord recipient, float amount, Instant timestamp) {
+    public TransactionRecord(UserRecord sender,
+                             UserRecord recipient,
+                             float amount,
+                             Instant timestamp) {
         this.sender = sender;
         this.recipient = recipient;
         this.amount = amount;
         this.timestamp = timestamp;
+        this.incentive = 0f; // default until set by service
     }
+
+    // ─────── Accessors ───────
 
     public Long getId() {
         return id;
@@ -66,13 +76,26 @@ public class TransactionRecord {
         return timestamp;
     }
 
+    public float getIncentive() {
+        return incentive;
+    }
+
+    public void setIncentive(float incentive) {
+        this.incentive = incentive;
+    }
+
+    // ─────── toString ───────
+
     @Override
     public String toString() {
-        return String.format("TransactionRecord[id=%d, sender=%d, recipient=%d, amount=%.2f, timestamp=%s]",
-                id,
-                sender.getId(),
-                recipient.getId(),
-                amount,
-                timestamp.toString());
+        return String.format(
+            "TransactionRecord[id=%d, sender=%d, recipient=%d, amount=%.2f, incentive=%.2f, timestamp=%s]",
+            id,
+            sender.getId(),
+            recipient.getId(),
+            amount,
+            incentive,
+            timestamp
+        );
     }
 }

@@ -8,39 +8,51 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 
+/**
+ * Task 4 debug test – runs against an embedded single-node KRaft broker.
+ */
 @SpringBootTest
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
-public class TaskFourTests {
-    static final Logger logger = LoggerFactory.getLogger(TaskFourTests.class);
+@EmbeddedKafka(
+        partitions = 1,
+        bootstrapServersProperty = "spring.kafka.bootstrap-servers",
+        brokerProperties = {
+            // ── mandatory KRaft settings ─────────────────────────────
+            "process.roles=broker,controller",
+            "node.id=1",
+            "broker.id=1",                        // ← ensure broker.id matches node.id
+            "controller.listener.names=CONTROLLER",
+            // two listeners, both on *random* ports chosen by the OS
+            "listeners=PLAINTEXT://localhost:0,CONTROLLER://localhost:0",
+            // tell Raft who the sole voter is (same host, controller port)
+            "controller.quorum.voters=1@localhost:0"
+        }
+)
+class TaskFourTests {
 
-    @Autowired
-    private KafkaProducer kafkaProducer;
+    private static final Logger log = LoggerFactory.getLogger(TaskFourTests.class);
 
-    @Autowired
-    private UserPopulator userPopulator;
-
-    @Autowired
-    private FileLoader fileLoader;
+    @Autowired private KafkaProducer kafkaProducer;
+    @Autowired private UserPopulator userPopulator;
+    @Autowired private FileLoader    fileLoader;
 
     @Test
     void task_four_verifier() throws InterruptedException {
+
         userPopulator.populate();
-        String[] transactionLines = fileLoader.loadStrings("/test_data/alskdjfh.fhdjsk");
-        for (String transactionLine : transactionLines) {
-            kafkaProducer.send(transactionLine);
+        for (String line : fileLoader.loadStrings("/test_data/alskdjfh.fhdjsk")) {
+            kafkaProducer.send(line);
         }
-        Thread.sleep(2000);
+        Thread.sleep(2_000);                      // give the listener time
 
+        log.info("----------------------------------------------------------");
+        log.info("Attach the debugger and read Wilbur’s balance.");
+        log.info("Stop the test once you have the number.");
+        log.info("----------------------------------------------------------");
 
-        logger.info("----------------------------------------------------------");
-        logger.info("----------------------------------------------------------");
-        logger.info("----------------------------------------------------------");
-        logger.info("use your debugger to find out what wilbur's balance is after all transactions are processed");
-        logger.info("kill this test once you find the answer");
         while (true) {
-            Thread.sleep(20000);
-            logger.info("...");
+            Thread.sleep(20_000);
+            log.info("…");
         }
     }
 }
