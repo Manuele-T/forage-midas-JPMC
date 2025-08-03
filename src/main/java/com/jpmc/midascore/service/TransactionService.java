@@ -29,16 +29,6 @@ public class TransactionService {
         this.restTemplate = restTemplate;
     }
 
-    /**
-     * Process an incoming Transaction from Kafka:
-     * 1. Verify both sender and recipient exist.
-     * 2. Check sender has sufficient balance.
-     * 3. If valid:
-     *    - Call external Incentive API.
-     *    - Persist a TransactionRecord (including incentive).
-     *    - Update balances: subtract from sender, add amount+incentive to recipient.
-     * 4. Otherwise: no DB changes.
-     */
     @Transactional
     public void process(Transaction tx) {
         long senderId    = tx.getSenderId();
@@ -48,17 +38,10 @@ public class TransactionService {
         UserRecord sender    = userRepository.findById(senderId);
         UserRecord recipient = userRepository.findById(recipientId);
 
-        // 1. both users must exist
-        if (sender == null || recipient == null) {
+        if (sender == null || recipient == null || sender.getBalance() < amount) {
             return;
         }
 
-        // 2. sender must have sufficient funds
-        if (sender.getBalance() < amount) {
-            return;
-        }
-
-        // 3. fetch incentive from external API
         Incentive inc = restTemplate.postForObject(
             "http://localhost:8080/incentive",
             tx,
@@ -66,7 +49,6 @@ public class TransactionService {
         );
         float incentiveAmount = (inc != null) ? inc.getAmount() : 0f;
 
-        // 4a. record the transaction including incentive
         TransactionRecord record = new TransactionRecord(
             sender,
             recipient,
@@ -76,11 +58,15 @@ public class TransactionService {
         record.setIncentive(incentiveAmount);
         transactionRepository.save(record);
 
-        // 4b. update balances
         sender.setBalance(sender.getBalance() - amount);
-        recipient.setBalance(
-            recipient.getBalance() + amount + incentiveAmount
-        );
+        recipient.setBalance(recipient.getBalance() + amount + incentiveAmount);
         userRepository.saveAll(List.of(sender, recipient));
     }
+
+
+    public float getCurrentBalance(Long userId) {
+    return userRepository.findById(userId)         // now returns Optional<UserRecord>
+                         .map(UserRecord::getBalance)
+                         .orElse(0f);
+}
 }
